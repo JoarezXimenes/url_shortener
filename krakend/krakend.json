@@ -1,0 +1,33 @@
+{
+  "version": 3,
+  "name": "api-gateway",
+  "port": 8080,
+  "endpoints": [
+    {
+      "endpoint": "/url",
+      "method": "GET",
+      "backend": [
+        {
+          "host": [
+            "http://url-service:3002"
+          ],
+          "url_pattern": "/",
+          "encoding": "string"
+        }
+      ]
+    },
+    {
+      "endpoint": "/auth",
+      "method": "GET",
+      "backend": [
+        {
+          "host": [
+            "http://auth-service:3001"
+          ],
+          "url_pattern": "/",
+          "encoding": "string"
+        }
+      ]
+    }
+  ]
+}
