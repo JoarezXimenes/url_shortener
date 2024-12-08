@@ -1,0 +1,100 @@
+services:
+
+  auth-service:
+    image: node:22.12.0
+    container_name: auth-service
+    working_dir: /usr/src/app
+    volumes:
+      - ./auth-service:/usr/src/app
+    environment:
+      - DATABASE_URL=postgresql://auth_user:auth_password@auth-db:5432/auth_db
+      - JWT_SECRET=supersecretkey
+      - NODE_ENV=development
+    depends_on:
+      - auth-db
+    command: >
+      sh -c "
+      npm install &&
+      npm run start:dev
+      "
+    ports:
+      - "3001:3001"
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001"]
+      interval: 20s
+      timeout: 5s
+      retries: 10
+
+  auth-db:
+    image: postgres:17
+    container_name: auth-db
+    environment:
+      POSTGRES_USER: auth_user
+      POSTGRES_PASSWORD: auth_password
+      POSTGRES_DB: auth_db
+    volumes:
+      - auth-db-data:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U auth_user -d auth_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  url-service:
+    image: node:22.12.0
+    container_name: url-service
+    working_dir: /usr/src/app
+    volumes:
+      - ./url-service:/usr/src/app
+    environment:
+      - DATABASE_URL=postgresql://url_user:url_password@url-db:5432/url_db
+      - NODE_ENV=development
+    depends_on:
+      - url-db
+    command: >
+      sh -c "
+      npm install &&
+      npm run start:dev
+      "
+    ports:
+      - "3002:3002"
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001"]
+      interval: 20s
+      timeout: 5s
+      retries: 10
+
+  url-db:
+    image: postgres:17
+    container_name: url-db
+    environment:
+      POSTGRES_USER: url_user
+      POSTGRES_PASSWORD: url_password
+      POSTGRES_DB: url_db
+    volumes:
+      - url-db-data:/var/lib/postgresql/data
+    ports:
+      - "5434:5432"
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U auth_user -d auth_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  auth-db-data:
+  url-db-data:
+
+networks:
+  backend:
+    driver: bridge

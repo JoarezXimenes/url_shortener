@@ -1,5 +1,5 @@
 # compiled output
-/dist
+**/dist
 /build
 
 # Ignore node_modules de cada serviço
