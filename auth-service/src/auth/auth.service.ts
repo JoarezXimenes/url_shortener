@@ -52,4 +52,30 @@ export class AuthService {
 
     return {access_token: await this.jwtService.signAsync(payload)};
   }
+
+
+  async validateToken(bearerToken: string): Promise<{ valid: boolean, userId: string | null }> {
+    try {
+      const token = bearerToken.split(' ')[1];
+      if (!token) {
+        return { valid: false, userId: null };
+      }
+
+      const decoded = await this.jwtService.verifyAsync(token);
+
+      const user = await this.prisma.user.findUnique({
+        where: { id: decoded.sub },
+      });
+
+      if (!user) {
+        return { valid: false, userId: null };
+      }
+
+      return { valid: true, userId: user.id };
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch(error) {
+      // Se ocorrer algum erro na verificação ou no banco de dados
+      return { valid: false, userId: null };
+    }
+  }
 }
