@@ -2,30 +2,139 @@
   "version": 3,
   "name": "api-gateway",
   "port": 8080,
+  "extra_config": {
+    "modifier/response-headers": {
+      "add": {
+        "Authorization": [
+          "Bearer your_token_here"
+        ]
+      }
+    }
+  },
   "endpoints": [
     {
+      "endpoint": "/auth/signup",
+      "method": "POST",
+      "backend": [
+        {
+          "host": [
+            "http://auth-service:3001"
+          ],
+          "url_pattern": "/auth/signup",
+          "encoding": "no-op",
+          "allow": ["req_headers.Authorization"]
+        }
+      ]
+    },
+    {
+      "endpoint": "/auth/signin",
+      "method": "POST",
+      "backend": [
+        {
+          "host": [
+            "http://auth-service:3001"
+          ],
+          "url_pattern": "/auth/signin",
+          "encoding": "json",
+          "allow": ["req_headers.Authorization"]
+        }
+      ]
+    },
+    {
+      "endpoint": "/auth/validate",
+      "method": "POST",
+      "backend": [
+        {
+          "host": [
+            "http://auth-service:3001"
+          ],
+          "url_pattern": "/auth/validate",
+          "encoding": "json",
+          "allow": ["req_headers.Authorization"]
+        }
+      ]
+    },
+    {
       "endpoint": "/url",
+      "method": "POST",
+      "backend": [
+        {
+          "host": [
+            "http://url-service:3002"
+          ],
+          "url_pattern": "/url",
+          "encoding": "json",
+          "allow": ["req_headers.Authorization"]
+        }
+      ]
+    },
+    {
+      "endpoint": "/url/list",
       "method": "GET",
       "backend": [
         {
           "host": [
             "http://url-service:3002"
           ],
-          "url_pattern": "/",
-          "encoding": "string"
+          "url_pattern": "/url/list",
+          "encoding": "json",
+          "allow": ["req_headers.Authorization"]
         }
       ]
     },
     {
-      "endpoint": "/auth",
+      "endpoint": "/url/{id}",
+      "method": "DELETE",
+      "backend": [
+        {
+          "host": [
+            "http://url-service:3002"
+          ],
+          "url_pattern": "/url/{id}",
+          "encoding": "json",
+          "allow": ["req_headers.Authorization"]
+        }
+      ]
+    },
+    {
+      "endpoint": "/url/{id}",
+      "method": "PUT",
+      "backend": [
+        {
+          "host": [
+            "http://url-service:3002"
+          ],
+          "url_pattern": "/url/{id}",
+          "encoding": "json",
+          "allow": ["req_headers.Authorization"]
+        }
+      ]
+    },
+    {
+      "endpoint": "/url/{id}",
       "method": "GET",
       "backend": [
         {
           "host": [
-            "http://auth-service:3001"
+            "http://url-service:3002"
           ],
-          "url_pattern": "/",
-          "encoding": "string"
+          "url_pattern": "/url/{id}",
+          "encoding": "json",
+          "allow": ["req_headers.Authorization"]
+        }
+      ]
+    },
+    {
+      "endpoint": "/{shortCode}",
+      "method": "GET",
+      "backend": [
+        {
+          "host": [
+            "http://url-service:3002"
+          ],
+          "url_pattern": "/{shortCode}",
+          "encoding": "json",
+          "allow": ["req_headers.Authorization"]
         }
       ]
     }
