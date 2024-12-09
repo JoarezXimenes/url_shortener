@@ -24,7 +24,7 @@ services:
       - ./auth-service:/usr/src/app
     environment:
       - DATABASE_URL=postgresql://auth_user:auth_password@auth-db:5432/auth_db
-      - JWT_SECRET=supersecretkey
+      - JWT_SECRET=chave_ultra_mega_hiper_secreta_do_JWT
       - NODE_ENV=development
     depends_on:
       - auth-db
