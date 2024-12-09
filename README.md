@@ -19,7 +19,7 @@
     <ol>
         <li>Clone o repositório em sua máquina local.</li>
         <li>Navegue até a raiz do projeto:</li>
-        <pre><code>cd nome-da-pasta-do-projeto</code></pre>
+        <pre><code>cd url_shortener</code></pre>
         <li>Execute o comando abaixo para subir os containers:</li>
         <pre><code>docker-compose up -d</code></pre>
         <li>Pronto! O projeto estará rodando e acessível em <code>http://localhost:8080</code>.</li>
