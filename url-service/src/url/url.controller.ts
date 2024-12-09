@@ -1,7 +1,9 @@
-import { Controller, Post, Body, Param, Get, Res, Req, UnauthorizedException } from '@nestjs/common';
+import { Controller, Post, Body, Param, Get, Res, Req, UseGuards, Delete, Put} from '@nestjs/common';
 import { UrlService } from './url.service';
 import { CreateShortUrlDto } from 'src/DTOs/createShortUrlDto';
 import { HttpService } from '@nestjs/axios';
+import { firstValueFrom } from 'rxjs';
+import { AuthGuard } from 'src/auth/auth.guard';
 
 @Controller()
 export class UrlController {
@@ -11,21 +13,20 @@ export class UrlController {
   ) {}
 
 
-  @Post()
+  @Post('url')
   async createShortUrl(@Body() data: CreateShortUrlDto, @Req() req ): Promise<{ shortUrl: string }> {
-    const authorizationHeader = req.headers['authorization'];
-    console.log('authorizationHeader: ', authorizationHeader);
+    const authorization = req.headers['authorization'];
     let userId;
     
-    if (!authorizationHeader) {
+    if (!authorization) {
       userId = null;
     } else {
 
       const authServiceBaseUrl = process.env.AUTH_API_URL || 'http://localhost:3001';
 
-      const authResponse = await this.httpService
-      .post(`${authServiceBaseUrl}/auth/validate`, { accessToken: authorizationHeader }) // Substitua '/validate' com o endpoint correto da sua API de autenticação
-      .toPromise();
+      const authResponse = await firstValueFrom(
+        this.httpService.post(`${authServiceBaseUrl}/auth/validate`, { accessToken: authorization })
+      );
 
       userId = authResponse.data.userId
     }
@@ -38,10 +39,54 @@ export class UrlController {
     }
   }
 
+  @UseGuards(AuthGuard)
+  @Get('url/list')
+  async listUserUrls(@Req() req ) {
+    const { id } = req.user;
+
+    const urlList = await this.urlService.getUrlsWithClickCount(id);
+
+    return urlList;
+  }
+
+  @UseGuards(AuthGuard)
+  @Delete('url/:id')
+  async deleteUrl(@Param() params: {id: string}, @Req() req ) {
+    const userId = req.user.id;
+    const urlId = params.id;
+
+    await this.urlService.deleteUrl(userId, urlId);
+
+    return;
+  }
+
+  @UseGuards(AuthGuard)
+  @Put('url/:id')
+  async updateUrl(@Param() params: {id: string}, @Body() data: CreateShortUrlDto, @Req() req ) {
+    const userId = req.user.id;
+    const urlId = params.id;
+
+    await this.urlService.updateUrl(userId, urlId, data);
+
+    return;
+  }
+
+  @UseGuards(AuthGuard)
+  @Get('url/:id')
+  async getUrlInfo(@Param() params: {id: string}, @Req() req ) {
+    const userId = req.user.id;
+    const urlId = params.id;
+
+    const urlInfo = await this.urlService.getUrlInfo(userId, urlId);
+
+    return urlInfo;
+  }
+
   @Get(':urlShortCode')
   async redirectToOriginalUrl(@Param() params: {urlShortCode: string}, @Res() res) {
     const originalUrl = await this.urlService.getOriginalUrl(params.urlShortCode);
 
     res.redirect(originalUrl);
   }
+
 }

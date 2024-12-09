@@ -65,8 +65,11 @@ export class UrlService {
   async url(
     urlWhereUniqueInput: Prisma.UrlWhereUniqueInput,
   ): Promise<Url | null> {
-    return this.prisma.url.findUnique({
-      where: urlWhereUniqueInput,
+    return this.prisma.url.findFirst({
+      where: {
+        ...urlWhereUniqueInput,
+        deletedAt: null
+      },
     });
   }
 
@@ -83,6 +86,81 @@ export class UrlService {
     });
 
     return url.originalUrl;
+  }
+
+
+  async getUrlsWithClickCount(userId: string): Promise<
+    Array<{ id: string; shortUrl: string; originalUrl: string; createdAt: Date; clickCount: number }>
+  > {
+    return this.prisma.url.findMany({
+      where: {
+        userId,
+        deletedAt: null,
+      },
+      select: {
+        id: true,
+        shortUrl: true,
+        originalUrl: true,
+        createdAt: true,
+        updatedAt: true,
+        _count: {
+          select: {
+            clicks: true,
+          },
+        },
+      },
+    }).then(urls =>
+      urls.map(url => ({
+        id: url.id,
+        shortUrl: url.shortUrl,
+        originalUrl: url.originalUrl,
+        createdAt: url.createdAt,
+        updatedAt: url.updatedAt,
+        clickCount: url._count.clicks, 
+      })),
+    );
+  }
+
+  async deleteUrl(userId: string, urlId: string) {
+    const url = await this.url({ id: urlId });
+
+    if(!url || url.userId !== userId) {
+      throw new NotFoundException();
+    }
+
+    await this.prisma.url.delete({
+      where: {
+        id: urlId
+      }
+    });
+
+  }
+
+  async updateUrl(userId: string, urlId: string, updateData: Prisma.UrlUpdateInput) {
+    const url = await this.url({ id: urlId });
+
+    if(!url || url.userId !== userId) {
+      throw new NotFoundException();
+    }
+
+    await this.prisma.url.update({
+      where: {
+        id: urlId
+      },
+      data: updateData
+    });
+
+  }
+
+  async getUrlInfo(userId: string, urlId: string) {
+    const url = await this.url({ id: urlId });
+
+    if(!url || url.userId !== userId) {
+      throw new NotFoundException();
+    }
+
+    return url;
+
   }
 
 }
